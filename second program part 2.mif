@@ -1,0 +1,110 @@
+-- Content of the RAM memory
+DEPTH = 64; -- Depth of memory: 6-bit address
+WIDTH = 8; -- Width of memory: 8-bit data
+ADDRESS_RADIX = BIN; -- All values in binary (HEX, DEC, OCT, BIN)
+DATA_RADIX = BIN;
+-- Specify memory content.
+CONTENT
+BEGIN
+[000000..111111] : 00000000; -- Initialize locations range 00-FF to 0000
+-- Format of each memory location is
+-- address : data
+-- Opcodes for the Little Computer 2
+-- 000 = load A,mmmmm
+-- 001 = store A,mmmmm
+-- 010 = add A,mmmmm
+-- 011 = sub A,mmmmm
+-- 100 = in A
+-- 101 = jz mmmmm
+-- 110 = jpos mmmmm
+-- 111 = halt
+
+--------------------------------------------------------
+-- Operatia (A-C)^3+(A-B)^2.  A=20, B=17, C=13, are rezultat impar?
+-- Partea a 2-a
+
+-- Inițializare valori.
+00000 : 00000000;       -- Locație de memorie folosită pentru stocarea variabilei auxiliare I, folosită pentru rezultatul produsului, inițializată cu 0.
+00001 : 00000001;       -- Locație de memorie folosită pentru stocarea variabilei folosită pentru decrementare.
+00010 : 00000010;       -- Locație de memorie folosită pentru stocarea variabilei folosită pentru verificarea parității, variabila J.
+00011 : 10000000;       -- Încărcăm input-ul (A - C) ^ 3 = (20 - 13) ^ 3 = 343 (343 - 256 = 87 în acumulator din cauza overflow-ului) din simularea precedentă de pe forma de undă în acumulator.
+00100 : 00100100;       -- Stocăm 87 la locația curentă de memorie, variabila F.
+00101 : 10000000;       -- Încărcăm input-ul A - B = 20 - 17 = 3 din simularea precedentă de pe forma de undă în acumulator.
+00110 : 00100110;       -- Stocăm 3 în locația curentă de memorie, variabila G (counter pentru înmulțire).
+00111 : 00100111;       -- Stocăm 3 în locația curentă de memorie, variabila H (pentru adunări repetate).
+
+-- Operația (A - B) ^ 2 = 3 * 3 = 9
+01000 : 10110000;       -- Daca valoarea din acumulator este 0, terminăm bucla. Valoarea evaluată este valoarea counter-ului G.
+01001 : 00000111;       -- Încărcăm locația variabilei H = 3 pentru adunări repetate. 
+01010 : 01000000;       -- Adunăm H = 3 la locația variabilei I (inițial 0).
+01011 : 00100000;       -- Stocăm rezultatul la locația variabilei I.
+01100 : 00000110;       -- Încărcăm locația variabilei G (inițial 3).
+01101 : 01100001;       -- Decrementăm G (G - 1).
+01110 : 00100110;       -- Stocăm G - 1 în locația lui G.
+01111 : 11001000;       -- Dacă valoarea din acumulator este nenegativă (>= 0), reluăm bucla.
+
+-- Operația I - F = (A - C) ^ 3 + (A - B) ^ 2 = 87 + 9 = 96, rezultatul final al calculului
+10000 : 00000000;       -- Încărcăm în acumulator I = 9.
+10001 : 01000100;       -- Adunăm variabila F la variabila I, 87 + 9 = 96.
+
+--Verificarea dacă numărul e impar. Dacă numărul e par, ultima valoare din acumulator va fi 0. Dacă e impar, va fi 1.
+10010 : 01100010;       -- Scădem variabila J = 2 din variabila I.
+10011 : 10110110;       -- Dacă I - J = I - 2 e 0, sărim la halt și afișăm ultima valoare din acumulator 0 (număr par).
+10100 : 11010010;       -- Dacă I - J = I - 2  e pozitiv (>= 0), reluăm bucla și continuăm să scădem J din I.
+10101 : 00000001;       -- Încărcăm 1 in acumulator (număr impar).
+10110 : 11111111;       -- halt
+
+--------------------------------------------------------
+-- Operatia (A-C)^3+(A-B)^2.  A=20, B=17, C=13, are rezultat impar?
+-- Partea 1
+
+-- Inițializare valori.
+00000 : 00000000;       -- Locație de memorie folosită pentru rezultatul ridicării la putere, D, inițializată cu 0.
+00001 : 00000001;       -- Locație de memorie folosită pentru stocarea decrementului, inițializată cu 1.
+00010 : 00010100;       -- Locație de memorie folosită pentru stocarea variabilei A = 20.
+00011 : 00010001;       -- Locație de memorie folosită pentru stocarea variabilei B = 17.
+00100 : 00001101;       -- Locație de memorie folosită pentru stocarea variabilei C = 13.
+00101 : 00000010;       -- încărcăm în acumulator locația de memorie pentru A = 20.
+00110 : 00100110;       -- Stocăm valoarea lui A în locația curentă de memorie.
+
+-- Operația A - C = 20 - 13 = 7
+00111 : 01100100;       -- Scădem A - C = 20 - 13 = 7.
+01000 : 00100100;       -- Stocăm rezultatul (7) în locația lui C (counter pentru înmulțire).
+01001 : 00100010;       -- Stocăm rezultatul (7) în locația lui A (pentru adunări repetate).
+
+-- Operația (A - C) ^ 2 = 7 * 7 = 49
+01010 : 10110011;       -- Daca valoarea din acumulator este 0, terminăm bucla. Valoarea evaluată este valoarea counter-ului C.
+01011 : 00000010;       -- Încărcăm locația variabilei A = 7 pentru adunări repetate. 
+01100 : 01000000;       -- Adunăm A = 7 la locația variabilei D (inițial 0).
+01101 : 00100000;       -- Stocăm rezultatul la locația variabilei D.
+01110 : 00000100;       -- Încărcăm locația variabilei C (inițial 7).
+01111 : 01100001;       -- Decrementăm C (C - 1).
+10000 : 00100100;       -- Stocăm C - 1 în locația lui C.
+10001 : 11001010;       -- Dacă valoarea din acumulator este nenegativă (>= 0), reluăm bucla.
+
+-- Operația (A - C) ^ 3 = 7 * 7 * 7 = 343 (343 - 256 = 87 în acumulator din cauza overflow-ului)
+10010 : 10111010;       -- Daca valoarea din acumulator este 0, terminăm bucla. Valoarea evaluată este valoarea counter-ului A.
+10011 : 00000000;       -- Încărcăm locația variabilei D = 49 pentru adunări repetate. 
+10100 : 01000100;       -- Adunăm D = 49 la locația variabilei C (inițial 0).
+10101 : 00100100;       -- Stocăm rezultatul la locația variabilei C.
+10110 : 00000010;       -- Încărcăm locația variabilei A (inițial 7).
+10111 : 01100001;       -- Decrementăm A (A - 1).
+11000 : 00100010;       -- Stocăm A - 1 în locația lui A.
+11001 : 11010010;       -- Dacă valoarea din acumulator este nenegativă (>= 0), reluăm bucla.
+11010 : 00000100;       -- încărcăm în acumulator rezultatul (A - C) ^ 3 = (20 - 13) ^ 3 = 343 (343 - 256 = 87 în acumulator din cauza overflow-ului).
+
+-- Operația A - C = 20 - 13 = 7
+11011 : 00000110;       -- Încărcăm în acumulator valoarea inițială a lui A (20) salvată la început.
+11100 : 01100011;       -- Scădem A - B = 20 - 17 = 3.
+11101 : 00100011;       -- Stocăm A - B în locația lui B.
+11110 : 11111111;       -- Halt
+END;
+
+
+	 
+	
+	
+
+
+
+
